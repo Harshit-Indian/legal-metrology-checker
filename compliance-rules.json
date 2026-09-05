@@ -1,0 +1,136 @@
+{
+  "_meta": {
+    "source": "Legal Metrology (Packaged Commodities) Rules, 2011 — Rule 6 (mandatory declarations), Rule 7 (manner of declaration)",
+    "note": "Sub-clause letters vary slightly across secondary sources; verify exact Rule 6 sub-clause lettering against the official gazette text before final submission. The substantive requirements below are accurate.",
+    "scope": "Applies to packages intended for retail sale. Does NOT apply to: packages > 25kg/25L, cement/fertilizer/farm produce in bags > 50kg, or commodities sold to institutional/industrial consumers (Rule 3 exemptions) — flag these as 'exempt' rather than 'non-compliant' if detected."
+  },
+  "declarations": [
+    {
+      "id": "manufacturer_details",
+      "field_name": "manufacturer_name_address",
+      "label": "Manufacturer / packer / importer name and address",
+      "required": true,
+      "data_type": "string",
+      "validation": "non_empty; must include a registered office address, not just a city/state",
+      "rule_citation": "Rule 6, LM(PC) Rules 2011",
+      "severity": "critical",
+      "violation_message": "Name and registered address of the manufacturer, packer, or importer is missing or incomplete."
+    },
+    {
+      "id": "country_of_origin",
+      "field_name": "country_of_origin",
+      "label": "Country of origin",
+      "required": "conditional",
+      "condition": "required only if the product is imported",
+      "data_type": "string",
+      "validation": "non_empty when is_imported = true",
+      "rule_citation": "Rule 6, LM(PC) Rules 2011 (imported packages)",
+      "severity": "critical",
+      "violation_message": "Country of origin is missing on what appears to be an imported product."
+    },
+    {
+      "id": "commodity_name",
+      "field_name": "commodity_name",
+      "label": "Common or generic name of the commodity",
+      "required": true,
+      "data_type": "string",
+      "validation": "non_empty",
+      "rule_citation": "Rule 6, LM(PC) Rules 2011",
+      "severity": "critical",
+      "violation_message": "Common or generic name of the commodity is not declared."
+    },
+    {
+      "id": "net_quantity",
+      "field_name": "net_quantity_value_and_unit",
+      "label": "Net quantity (value + standard unit)",
+      "required": true,
+      "data_type": "string",
+      "validation": "must contain a numeric value AND a standard unit (g, kg, ml, l, or count for numbered items)",
+      "rule_citation": "Rule 6 & Rule 8, LM(PC) Rules 2011",
+      "severity": "critical",
+      "violation_message": "Net quantity is missing, or not expressed in a standard unit of weight/volume/number."
+    },
+    {
+      "id": "mfg_date",
+      "field_name": "month_year_of_manufacture_or_import",
+      "label": "Month and year of manufacture / packing / import",
+      "required": true,
+      "data_type": "string",
+      "validation": "must contain a parseable month + year, not day-only or year-only",
+      "rule_citation": "Rule 6, LM(PC) Rules 2011",
+      "severity": "critical",
+      "violation_message": "Month and year of manufacture, packing, or import is missing or incomplete."
+    },
+    {
+      "id": "best_before_date",
+      "field_name": "best_before_or_use_by_date",
+      "label": "Best before / use-by date",
+      "required": "conditional",
+      "condition": "required only for commodities that can become unfit for use/consumption over time (food, cosmetics, medicines, etc.)",
+      "data_type": "string",
+      "validation": "non_empty when commodity_category = perishable_or_expiring",
+      "rule_citation": "Rule 6, LM(PC) Rules 2011",
+      "severity": "critical",
+      "violation_message": "Best-before or use-by date is missing on a commodity that requires one."
+    },
+    {
+      "id": "mrp",
+      "field_name": "mrp",
+      "label": "Maximum Retail Price, inclusive of all taxes",
+      "required": true,
+      "data_type": "string",
+      "validation": "must match pattern: (MRP|Maximum Retail Price)\\s*(Rs\\.?|₹|INR)\\s*\\d+\\.\\d{2}.*inclusive of all taxes (case-insensitive); price to exactly 2 decimal places",
+      "rule_citation": "Rule 6, LM(PC) Rules 2011",
+      "severity": "critical",
+      "violation_message": "MRP is missing, not inclusive-of-taxes, or not declared to 2 decimal places in the required format."
+    },
+    {
+      "id": "consumer_care",
+      "field_name": "consumer_care_details",
+      "label": "Consumer care / customer support details",
+      "required": true,
+      "data_type": "string",
+      "validation": "must include at least a phone number, email, or postal address distinct from the manufacturer address",
+      "rule_citation": "Rule 6, LM(PC) Rules 2011",
+      "severity": "minor",
+      "violation_message": "Consumer care contact details (phone/email/address) are missing."
+    },
+    {
+      "id": "unit_sale_price",
+      "field_name": "unit_sale_price",
+      "label": "Unit sale price (for combination / group / multi-piece packages only)",
+      "required": "conditional",
+      "condition": "required only if the package contains 2+ individual pieces or units",
+      "data_type": "string",
+      "validation": "non_empty when is_multi_piece_package = true",
+      "rule_citation": "Rule 6, LM(PC) Rules 2011 (as amended, 2023)",
+      "severity": "minor",
+      "violation_message": "Unit sale price is missing on a combination or multi-piece package."
+    }
+  ],
+  "manner_of_declaration_checks": [
+    {
+      "id": "readability_risk",
+      "label": "Readability / relative font-size risk",
+      "method": "heuristic",
+      "approach": "Measure the bounding-box height of each detected declaration's text relative to the overall package/label height in the same image, rather than an absolute mm value (no calibration reference available from a standard photo). Flag as 'readability risk: low/medium/high' rather than pass/fail.",
+      "rule_citation": "Rule 7(3) (minimum height) & Rule 9(1)(a) (legible and prominent), LM(PC) Rules 2011",
+      "severity": "minor",
+      "limitation": "This is a relative risk indicator, not a certified mm measurement. State this explicitly in the generated report so it isn't mistaken for a precise legal measurement.",
+      "stretch_goal": "Support an optional reference-object mode (e.g. user places a standard ID card/coin in frame) for a closer-to-absolute measurement in a future version."
+    },
+    {
+      "id": "placement_check",
+      "label": "Declaration grouping / principal display panel placement",
+      "method": "heuristic",
+      "approach": "Check whether required declarations are detected within a plausibly contiguous region of the image (principal display panel) rather than scattered/absent.",
+      "rule_citation": "Rule 2(h) & Rule 9, LM(PC) Rules 2011",
+      "severity": "minor"
+    }
+  ],
+  "non_standard_or_misleading_detection": {
+    "in_scope_for_mvp": "Format/pattern violations only — e.g. MRP not in the required 'inclusive of all taxes' format, non-standard units, malformed dates.",
+    "deferred": "Detecting semantically misleading claims (e.g. exaggerated marketing language) requires NLP judgment beyond rule-matching and is flagged as future work, not MVP scope.",
+    "reasoning": "Keeps the MVP's claims verifiable and rule-traceable rather than making subjective calls a hackathon-stage model can't reliably defend."
+  }
+}
